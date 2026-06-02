@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grayic Purchase Popup — Demo</title>
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;margin:0;padding:48px 24px;background:#f5f6f8;color:#111}
+    .wrap{max-width:680px;margin:0 auto}
+    h1{font-size:24px;margin:0 0 8px}
+    p{color:#555;line-height:1.5}
+    pre{background:#0d1117;color:#e6edf3;padding:16px;border-radius:10px;overflow:auto;font-size:13px}
+    code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Grayic Purchase Popup</h1>
+    <p>Live recent-purchase social-proof popup. The widget below is loading from this same deployment. Add it to any site with one tag in the header:</p>
+    <pre><code>&lt;script src="https://YOUR-VERCEL-APP/popup.js"
+        data-position="bottom-left"
+        data-interval="8000"
+        data-duration="5000"
+        defer&gt;&lt;/script&gt;</code></pre>
+    <p>Options: <code>data-position</code> (bottom-left | bottom-right | top-left | top-right), <code>data-interval</code> (gap ms), <code>data-duration</code> (visible ms), <code>data-limit</code> (recent count), <code>data-endpoint</code> (override feed URL).</p>
+  </div>
+  <script src="/popup.js" data-position="bottom-left" data-interval="6000" data-duration="5000" defer></script>
+</body>
+</html>

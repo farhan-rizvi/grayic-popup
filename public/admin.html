@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grayic Popup — Admin</title>
+  <style>
+    :root { --bg:#f5f6f8; --card:#fff; --line:#e5e7eb; --text:#111; --mute:#666; --accent:#6366f1; }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+    body{background:var(--bg);color:var(--text);padding:32px 20px;min-height:100vh}
+    .wrap{max-width:980px;margin:0 auto;display:grid;grid-template-columns:1fr 360px;gap:24px}
+    @media (max-width:780px){.wrap{grid-template-columns:1fr}}
+    h1{font-size:22px;margin-bottom:4px}
+    .sub{color:var(--mute);font-size:13px;margin-bottom:20px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+    .section-title{font-size:13px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}
+    .row{display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+    .row label{flex:0 0 140px;font-size:13.5px;color:#222;font-weight:500}
+    .row .ctrl{flex:1;min-width:160px}
+    input[type=text],input[type=number],select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;background:#fff;color:#111}
+    input[type=color]{width:48px;height:32px;padding:0;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
+    input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.12)}
+    .switch{position:relative;display:inline-block;width:42px;height:24px}
+    .switch input{opacity:0;width:0;height:0}
+    .slider{position:absolute;cursor:pointer;inset:0;background:#cbd5e1;border-radius:24px;transition:.2s}
+    .slider:before{content:"";position:absolute;height:18px;width:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+    input:checked + .slider{background:#22c55e}
+    input:checked + .slider:before{transform:translateX(18px)}
+    .chips{display:flex;gap:6px;flex-wrap:wrap}
+    .chip{padding:5px 10px;border:1px solid var(--line);border-radius:999px;font-size:12px;cursor:pointer;user-select:none;background:#fff;color:#555}
+    .chip.on{background:#fee2e2;border-color:#fca5a5;color:#b91c1c}
+    .btn{padding:9px 16px;border:0;border-radius:9px;background:var(--accent);color:#fff;font-weight:600;font-size:13.5px;cursor:pointer}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .btn.secondary{background:#e5e7eb;color:#111}
+    .actions{display:flex;gap:10px;justify-content:flex-end;align-items:center;margin-top:8px}
+    .status{font-size:12.5px;color:var(--mute);margin-right:auto}
+    .status.ok{color:#16a34a}.status.err{color:#dc2626}
+    .embed{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:#0d1117;color:#e6edf3;padding:12px;border-radius:8px;overflow:auto;white-space:pre-wrap;word-break:break-all}
+    .preview-wrap{position:sticky;top:32px}
+    .preview-stage{background:repeating-linear-gradient(45deg,#eef0f3,#eef0f3 8px,#e6e9ee 8px,#e6e9ee 16px);border-radius:12px;padding:24px;min-height:160px;display:flex;align-items:center;justify-content:center}
+    /* Popup card preview (mirrors popup.js render) */
+    .pp{display:flex;align-items:center;gap:12px;width:300px;max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:14px;padding:12px 14px;box-shadow:0 8px 30px rgba(0,0,0,.16)}
+    .pp-avatar{flex:0 0 auto;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:16px}
+    .pp-body{flex:1;min-width:0}
+    .pp-line1{font-size:13.5px;font-weight:600;color:#111;line-height:1.3}
+    .pp-line1 .from{font-weight:500;color:#666}
+    .pp-line2{font-size:12.5px;color:#555;line-height:1.35;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .pp-meta{font-size:11px;color:#9aa0a6;margin-top:3px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .pp-meta .time{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .pp-meta .verified{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px}
+    .pp-meta .check{color:#22c55e;font-weight:700}
+    /* Gate */
+    .gate{max-width:380px;margin:80px auto;background:#fff;padding:24px;border-radius:14px;border:1px solid var(--line);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+    .gate h1{font-size:18px;margin-bottom:6px}
+    .gate p{color:var(--mute);font-size:13px;margin-bottom:16px}
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+
+<div id="gate" class="gate">
+  <h1>Grayic Popup — Admin</h1>
+  <p>Enter admin token to manage popup settings.</p>
+  <input id="tokenIn" type="password" placeholder="admin token" />
+  <div style="height:10px"></div>
+  <button class="btn" id="enterBtn" style="width:100%">Continue</button>
+  <div id="gateErr" class="status err" style="margin-top:10px"></div>
+</div>
+
+<div id="app" class="wrap hidden">
+  <div>
+    <h1>Popup control</h1>
+    <div class="sub">Settings sync to the live widget within ~5 minutes (or instantly on next page load).</div>
+
+    <div class="card">
+      <div class="section-title">Behavior</div>
+      <div class="row"><label>Enabled</label><div class="ctrl">
+        <label class="switch"><input id="enabled" type="checkbox" /><span class="slider"></span></label>
+      </div></div>
+      <div class="row"><label>Position</label><div class="ctrl">
+        <select id="position">
+          <option value="bottom-left">Bottom left</option>
+          <option value="bottom-right">Bottom right</option>
+          <option value="top-left">Top left</option>
+          <option value="top-right">Top right</option>
+        </select>
+      </div></div>
+      <div class="row"><label>Visible (ms)</label><div class="ctrl"><input id="duration_ms" type="number" min="1000" max="60000" step="500" /></div></div>
+      <div class="row"><label>Gap (ms)</label><div class="ctrl"><input id="interval_ms" type="number" min="1000" max="120000" step="500" /></div></div>
+      <div class="row"><label>Feed size</label><div class="ctrl"><input id="feed_limit" type="number" min="1" max="50" /></div></div>
+      <div class="row"><label>Refresh (ms)</label><div class="ctrl"><input id="refresh_ms" type="number" min="60000" max="3600000" step="30000" /></div></div>
+      <div class="row"><label>Exclude sources</label><div class="ctrl">
+        <div class="chips" id="excludeChips"></div>
+      </div></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Design</div>
+      <div class="row"><label>Accent (from)</label><div class="ctrl" style="display:flex;gap:8px;align-items:center">
+        <input id="accent_from" type="color" /><input id="accent_from_hex" type="text" maxlength="7" style="flex:1" />
+      </div></div>
+      <div class="row"><label>Accent (to)</label><div class="ctrl" style="display:flex;gap:8px;align-items:center">
+        <input id="accent_to" type="color" /><input id="accent_to_hex" type="text" maxlength="7" style="flex:1" />
+      </div></div>
+      <div class="row"><label>Show country</label><div class="ctrl">
+        <label class="switch"><input id="show_country" type="checkbox" /><span class="slider"></span></label>
+      </div></div>
+      <div class="row"><label>Show time ago</label><div class="ctrl">
+        <label class="switch"><input id="show_time_ago" type="checkbox" /><span class="slider"></span></label>
+      </div></div>
+      <div class="row"><label>Show verified</label><div class="ctrl">
+        <label class="switch"><input id="show_verified" type="checkbox" /><span class="slider"></span></label>
+      </div></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Copy</div>
+      <div class="row"><label>Name fallback</label><div class="ctrl"><input id="name_fallback" type="text" maxlength="40" /></div></div>
+      <div class="row"><label>Product fallback</label><div class="ctrl"><input id="product_fallback" type="text" maxlength="80" /></div></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Embed code</div>
+      <div class="embed" id="embedCode"></div>
+    </div>
+
+    <div class="actions">
+      <span id="status" class="status"></span>
+      <button class="btn secondary" id="signOutBtn" type="button">Sign out</button>
+      <button class="btn" id="saveBtn" type="button">Save changes</button>
+    </div>
+  </div>
+
+  <div>
+    <div class="preview-wrap">
+      <div class="card">
+        <div class="section-title">Live preview</div>
+        <div class="preview-stage">
+          <div class="pp" id="pp">
+            <div class="pp-avatar" id="pp-avatar">A</div>
+            <div class="pp-body">
+              <div class="pp-line1" id="pp-line1">Antonio <span class="from">from United States</span></div>
+              <div class="pp-line2" id="pp-line2">purchased Salix</div>
+              <div class="pp-meta" id="pp-meta"><span class="time">5 minutes ago</span><span class="verified"><span class="check">✓</span> Verified</span></div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:11.5px;color:var(--mute);margin-top:10px">Sample data. Real popup uses live recent purchases.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var SETTINGS_URL = "https://kndyhdkaiqijyzmxtdem.supabase.co/functions/v1/popup-settings";
+  var WIDGET_SRC = location.origin + "/popup.js";
+  var SOURCES = ["dub","lemonsqueezy","webflow","custom"];
+
+  var $ = function(id){ return document.getElementById(id); };
+  var state = { token: localStorage.getItem("grayic_admin_token") || "", cfg: null, exclude: new Set(["custom"]) };
+
+  // ── Gate ────────────────────────────────────────────────────────────────
+  function showApp(){ $("gate").classList.add("hidden"); $("app").classList.remove("hidden"); }
+  function showGate(){ $("app").classList.add("hidden"); $("gate").classList.remove("hidden"); $("tokenIn").value=""; $("gateErr").textContent=""; }
+  $("enterBtn").onclick = function(){
+    var t = $("tokenIn").value.trim();
+    if(!t){ $("gateErr").textContent="Enter token"; return; }
+    state.token = t;
+    loadSettings().then(function(ok){
+      if(ok){ localStorage.setItem("grayic_admin_token", t); showApp(); init(); }
+      else { $("gateErr").textContent="Invalid token or endpoint error"; }
+    });
+  };
+  $("tokenIn").addEventListener("keydown", function(e){ if(e.key==="Enter") $("enterBtn").click(); });
+
+  // ── Load / save ────────────────────────────────────────────────────────
+  function loadSettings(){
+    return fetch(SETTINGS_URL, { headers: { "x-admin-token": state.token } })
+      .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+      .then(function(d){ state.cfg = d; return true; })
+      .catch(function(){ return false; });
+  }
+  function save(){
+    var body = collect();
+    setStatus("Saving…","");
+    fetch(SETTINGS_URL, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "x-admin-token": state.token },
+      body: JSON.stringify(body),
+    }).then(function(r){ return r.json().then(function(d){ return {ok:r.ok, d:d}; }); })
+      .then(function(res){
+        if(res.ok){ state.cfg = res.d; setStatus("Saved","ok"); }
+        else setStatus(res.d && res.d.error || "Save failed","err");
+      }).catch(function(){ setStatus("Network error","err"); });
+  }
+
+  function setStatus(msg, kind){
+    var el = $("status");
+    el.textContent = msg;
+    el.className = "status " + (kind||"");
+    if(kind==="ok") setTimeout(function(){ if(el.textContent===msg) el.textContent=""; }, 2500);
+  }
+
+  // ── Init UI from state.cfg ─────────────────────────────────────────────
+  function init(){
+    if(state.token && !state.cfg){ loadSettings().then(function(ok){ ok ? init() : showGate(); }); return; }
+    if(!state.cfg) return;
+    var c = state.cfg;
+    $("enabled").checked = !!c.enabled;
+    $("position").value = c.position || "bottom-left";
+    $("duration_ms").value = c.duration_ms;
+    $("interval_ms").value = c.interval_ms;
+    $("feed_limit").value = c.feed_limit;
+    $("refresh_ms").value = c.refresh_ms;
+    state.exclude = new Set(c.exclude_sources || []);
+    renderChips();
+    $("accent_from").value = c.accent_from; $("accent_from_hex").value = c.accent_from;
+    $("accent_to").value = c.accent_to; $("accent_to_hex").value = c.accent_to;
+    $("show_country").checked = !!c.show_country;
+    $("show_time_ago").checked = !!c.show_time_ago;
+    $("show_verified").checked = !!c.show_verified;
+    $("name_fallback").value = c.name_fallback || "Someone";
+    $("product_fallback").value = c.product_fallback || "a template";
+    refreshPreview();
+    refreshEmbed();
+    wireLive();
+  }
+
+  function renderChips(){
+    var w = $("excludeChips"); w.innerHTML = "";
+    SOURCES.forEach(function(src){
+      var el = document.createElement("div");
+      el.className = "chip" + (state.exclude.has(src) ? " on" : "");
+      el.textContent = src;
+      el.onclick = function(){
+        if(state.exclude.has(src)) state.exclude.delete(src); else state.exclude.add(src);
+        renderChips();
+      };
+      w.appendChild(el);
+    });
+  }
+
+  function collect(){
+    return {
+      enabled: $("enabled").checked,
+      position: $("position").value,
+      duration_ms: parseInt($("duration_ms").value,10),
+      interval_ms: parseInt($("interval_ms").value,10),
+      feed_limit: parseInt($("feed_limit").value,10),
+      refresh_ms: parseInt($("refresh_ms").value,10),
+      exclude_sources: Array.from(state.exclude),
+      accent_from: $("accent_from_hex").value || $("accent_from").value,
+      accent_to: $("accent_to_hex").value || $("accent_to").value,
+      show_country: $("show_country").checked,
+      show_time_ago: $("show_time_ago").checked,
+      show_verified: $("show_verified").checked,
+      name_fallback: $("name_fallback").value.trim() || "Someone",
+      product_fallback: $("product_fallback").value.trim() || "a template",
+    };
+  }
+
+  // ── Live preview ───────────────────────────────────────────────────────
+  function refreshPreview(){
+    var c = collect();
+    var sampleName = "Antonio";
+    var sampleCountry = c.show_country ? "United States" : null;
+    var sampleProduct = "Salix";
+    $("pp-avatar").style.background = "linear-gradient(135deg," + c.accent_from + "," + c.accent_to + ")";
+    $("pp-avatar").textContent = sampleName.charAt(0);
+    $("pp-line1").innerHTML = sampleName + (sampleCountry ? ' <span class="from">from '+sampleCountry+'</span>' : "");
+    $("pp-line2").textContent = "purchased " + sampleProduct;
+    var metaHtml = "";
+    if(c.show_time_ago || c.show_verified){
+      var left = c.show_time_ago ? '<span class="time">5 minutes ago</span>' : '<span class="time"></span>';
+      var right = c.show_verified ? '<span class="verified"><span class="check">✓</span> Verified</span>' : "";
+      metaHtml = left + right;
+    }
+    $("pp-meta").innerHTML = metaHtml;
+    $("pp-meta").style.display = metaHtml ? "" : "none";
+  }
+
+  function refreshEmbed(){
+    var c = collect();
+    $("embedCode").textContent =
+      '<script src="' + WIDGET_SRC + '"\n' +
+      '        data-position="' + c.position + '"\n' +
+      '        data-interval="' + c.interval_ms + '"\n' +
+      '        data-duration="' + c.duration_ms + '"\n' +
+      '        defer><\/script>';
+  }
+
+  function wireLive(){
+    ["enabled","position","duration_ms","interval_ms","feed_limit","refresh_ms",
+     "show_country","show_time_ago","show_verified",
+     "name_fallback","product_fallback"].forEach(function(id){
+      $(id).addEventListener("input", function(){ refreshPreview(); refreshEmbed(); });
+      $(id).addEventListener("change", function(){ refreshPreview(); refreshEmbed(); });
+    });
+    function syncHex(colorId, hexId){
+      $(colorId).addEventListener("input", function(){ $(hexId).value = $(colorId).value; refreshPreview(); });
+      $(hexId).addEventListener("input", function(){
+        var v = $(hexId).value.trim();
+        if(/^#[0-9a-fA-F]{6}$/.test(v)){ $(colorId).value = v; refreshPreview(); }
+      });
+    }
+    syncHex("accent_from","accent_from_hex");
+    syncHex("accent_to","accent_to_hex");
+    $("excludeChips").addEventListener("click", function(){ /* chips already trigger renderChips */ });
+  }
+
+  $("saveBtn").onclick = save;
+  $("signOutBtn").onclick = function(){
+    localStorage.removeItem("grayic_admin_token");
+    state.token = ""; state.cfg = null;
+    showGate();
+  };
+
+  // ── Boot ────────────────────────────────────────────────────────────────
+  if(state.token){
+    loadSettings().then(function(ok){
+      if(ok){ showApp(); init(); } else { showGate(); }
+    });
+  }
+})();
+</script>
+</body>
+</html>
