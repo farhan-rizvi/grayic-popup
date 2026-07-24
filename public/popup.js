@@ -4,7 +4,7 @@
  * the server config returned by /recent-purchases.
  *
  *   <script src="https://grayic-popup.vercel.app/popup.js"
- *           data-endpoint="https://kndyhdkaiqijyzmxtdem.supabase.co/functions/v1/recent-purchases"
+ *           data-endpoint="https://earn-db.kovaai.site/recent-purchases"
  *           data-position="bottom-left"
  *           data-interval="8000"
  *           data-duration="5000"
@@ -28,7 +28,7 @@
     duration_ms: attr("data-duration") ? parseInt(attr("data-duration"), 10) : null,
   };
   var endpoint = attr("data-endpoint") ||
-    "https://kndyhdkaiqijyzmxtdem.supabase.co/functions/v1/recent-purchases";
+    "https://earn-db.kovaai.site/recent-purchases";
   var feedLimit = attr("data-limit") ? parseInt(attr("data-limit"), 10) : null;
 
   // Defaults — overridden by server config, then by per-site data-* overrides.
